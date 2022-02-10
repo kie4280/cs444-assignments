@@ -43,4 +43,4 @@ class Perceptron:
                 class.
         """
         # TODO: implement me
-        return
+        return []

@@ -63,4 +63,4 @@ class Softmax:
                 class.
         """
         # TODO: implement me
-        return
+        return []

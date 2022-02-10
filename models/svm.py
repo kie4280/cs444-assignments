@@ -64,4 +64,4 @@ class SVM:
                 class.
         """
         # TODO: implement me
-        return
+        return []

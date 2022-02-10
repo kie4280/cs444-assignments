@@ -1,3 +1,4 @@
+from models.utils import *
 from models.logistic import *
 from models.perceptron import *
 from models.softmax import *
