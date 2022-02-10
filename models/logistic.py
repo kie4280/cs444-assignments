@@ -29,7 +29,7 @@ class Logistic:
             the sigmoid of the input
         """
         # TODO: implement me
-        x = 1/(1+np.exp(-z))
+        x = 1/(1 + np.exp(-z))
         return x
 
     def _empirical_loss(self, X: np.ndarray, y: np.ndarray):
@@ -62,7 +62,7 @@ class Logistic:
 
         for i in range(self.epochs):
             for X, y in utils.minibatch(X_train, y_train, self.bs):
-                self.w = self.w - self.lr * self._loss_backward(X,y)
+                self.w = self.w - self.lr * self._loss_backward(X, y)
                 pass
 
     def predict(self, X_test: np.ndarray) -> np.ndarray:
@@ -82,5 +82,5 @@ class Logistic:
         dot = np.dot(X_test, self.w)
         pred = self.sigmoid(dot)
         output = np.zeros(X_test.shape[0], dtype=int)
-        output[pred[:,0] > self.threshold] = 1
+        output[pred[:, 0] > self.threshold] = 1
         return output
