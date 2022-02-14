@@ -36,10 +36,10 @@ class Logistic:
         loss = -np.log(self.sigmoid(np.dot(self.w, X)))
         return loss
 
-    def _loss_backward(self, X: np.ndarray, y: np.ndarray):
+    def _loss_backward(self, X: np.ndarray, y: np.ndarray) -> np.ndarray:
         out = (self.sigmoid(y * np.dot(X, self.w)))
         grad_loss = -(1-out) * y * X
-        avg_grad = np.sum(grad_loss, axis=0) / X.shape[0]
+        avg_grad = np.mean(grad_loss, axis=0)
         return np.expand_dims(avg_grad, axis=-1)
 
     def train(self, X_train: np.ndarray, y_train: np.ndarray):
