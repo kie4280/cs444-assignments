@@ -16,20 +16,6 @@ class Perceptron:
         self.lr = lr
         self.epochs = epochs
         self.n_class = n_class
-
-    def signum_array(self, array):
-        array[array > 0] = 1
-        array[array <= 0] = -1
-        return array
-    
-    def learning(self, X_train, y_train, weights):
-        for i in range(self.epochs):
-            for xi, yi in zip(X_train, y_train):
-                y_hat = self.signum_array(np.dot(xi, weights))
-                gradient = xi * (y_hat - yi)
-                gradient = gradient.reshape(gradient.shape[0], 1)
-                weights = weights - (gradient * self.lr)
-        return weights
     
     def train(self, X_train: np.ndarray, y_train: np.ndarray):
         """Train the classifier.
@@ -41,23 +27,29 @@ class Perceptron:
                 N examples with D dimensions
             y_train: a numpy array of shape (N,) containing training labels
         """
-        self.w = np.zeros((self.n_class, X_train.shape[1]))
-        y_train_copy = np.copy(y_train)
-        y_train_copy = y_train_copy.reshape((X_train.shape[0], 1))
-
-        for i in range(self.n_class):
-            print("Training Classifier: ", i+1)
-            i_train = np.copy(y_train_copy)
-            for j in range(X_train.shape[0]):
-                if i_train[j, 0] == i:
-                    i_train[j, 0] = 1
-                else:
-                    i_train[j, 0] = -1
-                    
-            weights = np.zeros((X_train.shape[1], 1))
-            weights = self.learning(X_train, i_train, weights)
-            self.w[i, :] = weights.T            
+        self.w = np.random.rand(X_train.shape[1],self.n_class)
         
+        for ep in range(self.epochs):
+            if (ep % 10 == 0) and (ep != 0):
+                self.lr = self.lr / 10
+            for i in range(y_train.shape[0]):
+                X_values = X_train[i]
+                X_values = X_train[i].reshape((X_values.shape[0],1))
+                scores = np.dot(self.w.T , X_values)
+                correct_score = scores[y_train[i]]
+                for j in range(self.n_class):
+                    if j == y_train[i]:
+                        
+                        count = 0
+                        for k in range(scores.shape[0]):
+                            if (scores[k] > correct_score):
+                                count = count + 1
+                                
+                        self.w.T[j] = self.w.T[j] + self.lr * X_train[i] * count                             
+                    else:
+                        if scores[j] > correct_score:
+                            self.w.T[j] = self.w.T[j] - self.lr * X_train[i]
+                        
         return self.w
 
     def predict(self, X_test: np.ndarray) -> np.ndarray:
@@ -72,9 +64,5 @@ class Perceptron:
                 length N, where each element is an integer giving the predicted
                 class.
         """
-        predicted_class = self.signum_array(np.dot(self.w, X_test.T))
-        prediction = np.argmax(predicted_class, axis=0).T
-    
-        return prediction
-
-    
+        predictions = np.dot(X_test, self.w)
+        return np.argmax(predictions,axis = 1)
