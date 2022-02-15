@@ -78,7 +78,9 @@ class SVM:
         for i in range(self.epochs):
             for X, y in utils.minibatch(X_train, y_train, self.bs):
                 self.w = self.w - self.lr * self.calc_gradient(X, y)
-                pass
+            acc = utils.get_acc(self.predict(X_train), y_train)
+            self.lr = self.lr / 2
+            print("epoch {} acc: {}".format(i+1, acc))
 
     def predict(self, X_test: np.ndarray) -> np.ndarray:
         """Use the trained weights to predict labels for test data points.

@@ -74,13 +74,15 @@ class Softmax:
         # X_train = np.copy(X_train)
         # y_train = np.copy(y_train)
         self.w = np.random.rand(X_train.shape[1], self.n_class)
-        y_train = np.expand_dims(y_train, -1)
+        # y_train = np.expand_dims(y_train, -1)
         X_train = X_train.astype(dtype=np.float64)
 
         for i in range(self.epochs):
             for X, y in utils.minibatch(X_train, y_train, self.bs):
                 self.w = self.w - self.lr * self.calc_gradient(X, y)
-                pass
+            acc = utils.get_acc(self.predict(X_train), y_train)
+            print("epoch {} acc: {}".format(i+1, acc))
+
 
     def predict(self, X_test: np.ndarray) -> np.ndarray:
         """Use the trained weights to predict labels for test data points.

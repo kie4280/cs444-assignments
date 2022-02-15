@@ -63,7 +63,6 @@ class Logistic:
         for i in range(self.epochs):
             for X, y in utils.minibatch(X_train, y_train, self.bs):
                 self.w = self.w - self.lr * self._loss_backward(X, y)
-                pass
 
     def predict(self, X_test: np.ndarray) -> np.ndarray:
         """Use the trained weights to predict labels for test data points.
