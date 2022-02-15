@@ -1,10 +1,11 @@
 """Support Vector Machine (SVM) model."""
 
 import numpy as np
+from models import utils
 
 
 class SVM:
-    def __init__(self, n_class: int, lr: float, epochs: int, reg_const: float):
+    def __init__(self, n_class: int, lr: float, epochs: int, reg_const: float, batch_size: int = 8):
         """Initialize a new classifier.
 
         Parameters:
@@ -18,6 +19,7 @@ class SVM:
         self.epochs = epochs
         self.reg_const = reg_const
         self.n_class = n_class
+        self.bs = batch_size
 
     def calc_gradient(self, X_train: np.ndarray, y_train: np.ndarray) -> np.ndarray:
         """Calculate gradient of the svm hinge loss.
@@ -36,7 +38,24 @@ class SVM:
                 as w
         """
         # TODO: implement me
-        return
+        dot = np.dot(X_train, self.w)
+        grads = np.zeros_like(self.w, dtype=np.float64)
+        diffs = np.expand_dims(dot[range(X_train.shape[0]), y_train], -1) - dot
+        target_mask = np.zeros((X_train.shape[0], self.n_class), dtype=int)
+        target_mask[range(X_train.shape[0]), y_train] = 1
+        # print(diffs.shape)
+        # print(X_train.shape)
+        indicators = diffs < 1
+        w_correct = np.sum(indicators, axis=1) - 1
+
+        for i in range(self.n_class):
+            grads[:, i] = self.w[:, i] * self.reg_const / X_train.shape[0] + np.mean(
+                (np.expand_dims((indicators[:, i] * (1-target_mask[:, i]) - target_mask[:, i] * w_correct), -1)
+                 ) * X_train, 0).T
+
+        # print(indicators.astype(int))
+
+        return grads
 
     def train(self, X_train: np.ndarray, y_train: np.ndarray):
         """Train the classifier.
@@ -49,7 +68,17 @@ class SVM:
             y_train: a numpy array of shape (N,) containing training labels
         """
         # TODO: implement me
-        return
+
+        # X_train = np.copy(X_train)
+        # y_train = np.copy(y_train)
+        self.w = np.random.rand(X_train.shape[1], self.n_class)
+        # y_train = np.expand_dims(y_train, -1)
+        X_train = X_train.astype(dtype=np.float64)
+
+        for i in range(self.epochs):
+            for X, y in utils.minibatch(X_train, y_train, self.bs):
+                self.w = self.w - self.lr * self.calc_gradient(X, y)
+                pass
 
     def predict(self, X_test: np.ndarray) -> np.ndarray:
         """Use the trained weights to predict labels for test data points.
@@ -64,4 +93,4 @@ class SVM:
                 class.
         """
         # TODO: implement me
-        return []
+        return np.argmax(np.dot(X_test, self.w), axis=1)

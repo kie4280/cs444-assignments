@@ -43,20 +43,18 @@ class Softmax:
 
         m1 = np.dot(X_train, self.w)
         m1 = m1 / self.temp
-        m1 = m1 - m1.max()
+        m1 = m1 - np.max(m1, 1, keepdims=True)
         classes_exp = np.exp(m1)
         exp_sum = np.sum(classes_exp, 1) + 1e-16
 
         one_hot = np.zeros((X_train.shape[0], self.n_class), dtype=int)
         one_hot[range(X_train.shape[0]), y_train] = 1
 
-        # regu = np.ones_like(one_hot, dtype=np.float64) * self.reg_const / (self.n_class - 1)
-        # regu[range(X_train.shape[0]),y_train] = 1-self.reg_const
-
         new_w = np.zeros_like(self.w, dtype=np.float64)
         for i in range(self.n_class):
             s = classes_exp[:, i] / exp_sum
-            s = np.expand_dims(s - one_hot[:, i], -1) * X_train
+            s = np.expand_dims(
+                s - one_hot[:, i], -1) * X_train + self.reg_const * self.w[:, i]
             new_w[:, i] = np.mean(s, 0)
 
         # print(new_w.shape)
@@ -73,8 +71,8 @@ class Softmax:
             y_train: a numpy array of shape (N,) containing training labels
         """
         # TODO: implement me
-        X_train = np.copy(X_train)
-        y_train = np.copy(y_train)
+        # X_train = np.copy(X_train)
+        # y_train = np.copy(y_train)
         self.w = np.random.rand(X_train.shape[1], self.n_class)
         y_train = np.expand_dims(y_train, -1)
         X_train = X_train.astype(dtype=np.float64)
@@ -83,7 +81,6 @@ class Softmax:
             for X, y in utils.minibatch(X_train, y_train, self.bs):
                 self.w = self.w - self.lr * self.calc_gradient(X, y)
                 pass
-        return
 
     def predict(self, X_test: np.ndarray) -> np.ndarray:
         """Use the trained weights to predict labels for test data points.
