@@ -73,7 +73,7 @@ class Softmax:
         # TODO: implement me
         # X_train = np.copy(X_train)
         # y_train = np.copy(y_train)
-        self.w = np.random.rand(X_train.shape[1], self.n_class)
+        self.w = 2*np.random.randn(X_train.shape[1], self.n_class)
         # y_train = np.expand_dims(y_train, -1)
         X_train = X_train.astype(dtype=np.float64)
 
@@ -82,6 +82,7 @@ class Softmax:
                 self.w = self.w - self.lr * self.calc_gradient(X, y)
             acc = utils.get_acc(self.predict(X_train), y_train)
             print("epoch {} acc: {}".format(i+1, acc))
+            self.lr = self.lr * 0.5
 
 
     def predict(self, X_test: np.ndarray) -> np.ndarray:

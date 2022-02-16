@@ -71,7 +71,7 @@ class SVM:
 
         # X_train = np.copy(X_train)
         # y_train = np.copy(y_train)
-        self.w = np.random.rand(X_train.shape[1], self.n_class)
+        self.w = 2 * np.random.randn(X_train.shape[1], self.n_class)
         # y_train = np.expand_dims(y_train, -1)
         X_train = X_train.astype(dtype=np.float64)
 
