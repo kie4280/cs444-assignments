@@ -62,7 +62,8 @@ class NeuralNetwork:
             the output
         """
         # TODO: implement me
-        return
+
+        return np.matmul(X, W) + b
 
     def relu(self, X: np.ndarray) -> np.ndarray:
         """Rectified Linear Unit (ReLU).
@@ -72,7 +73,8 @@ class NeuralNetwork:
             the output
         """
         # TODO: implement me
-        return
+        output = np.where(output > 0, output, 0)
+        return output
 
     def relu_grad(self, X: np.ndarray) -> np.ndarray:
         """Gradient of Rectified Linear Unit (ReLU).
@@ -148,4 +150,10 @@ class NeuralNetwork:
         """
         # TODO: implement me. You'll want to add an if-statement that can
         # handle updates for both SGD and Adam depending on the value of opt.
+
+        if opt == 'SGD':
+            pass
+
+        elif opt == 'Adam':
+            pass
         pass
