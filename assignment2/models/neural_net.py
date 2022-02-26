@@ -73,7 +73,7 @@ class NeuralNetwork:
             the output
         """
         # TODO: implement me
-        output = np.where(output > 0, output, 0)
+        output = np.where(X > 0, X, 0)
         return output
 
     def relu_grad(self, X: np.ndarray) -> np.ndarray:
@@ -84,7 +84,8 @@ class NeuralNetwork:
             the output data
         """
         # TODO: implement me
-        return
+        diag = np.diagflat(np.where(X > 0, 1, 0))
+        return diag
 
     def softmax(self, X: np.ndarray) -> np.ndarray:
         """The softmax function.
@@ -94,7 +95,21 @@ class NeuralNetwork:
             the output
         """
         # TODO: implement me
-        return
+        X = X - np.max(X, axis=1, keepdims=True)
+        cate = np.exp(X)
+        return cate / np.sum(cate, axis=1)
+
+
+    
+    def softmax_grad(self, X: np.ndarray) -> np.ndarray:
+        """
+        unsure
+        """
+        X = np.expand_dims(X, -1)
+        output = np.matmul(X, -X.T)
+        output = output + np.diagflat(X)
+
+        return output
 
     def forward(self, X: np.ndarray) -> np.ndarray:
         """Compute the scores for each class for all of the data samples.
@@ -111,7 +126,21 @@ class NeuralNetwork:
         # self.outputs as it will be used during back-propagation. You can use
         # the same keys as self.params. You can use functions like
         # self.linear, self.relu, and self.softmax in here.
-        return
+
+        W: np.ndarray = self.params["W" + str(1)]
+        b: np.ndarray = self.params["b" + str(1)]
+        self.linear(W, X, b)
+        for layer in range(2, self.num_layers + 1):
+            W: np.ndarray = self.params["W" + str(layer)]
+            b: np.ndarray = self.params["b" + str(layer)]
+            X = self.linear(W, X, b)
+            if layer == self.num_layers:
+                X = self.softmax(X)
+            else:
+                X = self.relu(X)
+            self.outputs[str(layer)] = X
+
+        return X
 
     def backward(self, y: np.ndarray, reg: float = 0.0) -> float:
         """Perform back-propagation and compute the gradients and losses.
@@ -129,6 +158,10 @@ class NeuralNetwork:
         # parameter and during numerical gradient checks. You can use the same
         # keys as self.params. You can add functions like self.linear_grad,
         # self.relu_grad, and self.softmax_grad if it helps organize your code.
+
+
+
+
         return
 
     def update(
