@@ -140,7 +140,7 @@ class NeuralNetwork:
         # the same keys as self.params. You can use functions like
         # self.linear, self.relu, and self.softmax in here.
 
-        self.outputs[str(0)] = X
+        self.outputs[str(0)] = X.copy()
 
         for layer in range(1, self.num_layers + 1):
             W: np.ndarray = self.params["W" + str(layer)]
@@ -184,7 +184,7 @@ class NeuralNetwork:
 
         grad_CEL = np.zeros((y.shape[0], 1, activ.shape[1]))
         grad_CEL[range(y.shape[0]), 0, y] = -1 / \
-            activ[range(y.shape[0]), y]  # unsure
+            activ[range(y.shape[0]), y]
         activ_grad = self.softmax_grad(activ)  # unsure
         grad_W = self.weight_grad(ll_W, self.outputs[str(self.num_layers-1)])
         grad_x = ll_W.T
@@ -198,20 +198,20 @@ class NeuralNetwork:
             # print(g[i].shape, grad_W.shape)
             gw[i] = np.tensordot(ba[i], grad_W[i], axes=1)
         gw = gw.squeeze(axis=1)
-        
+
         grad_upstream = np.matmul(ba, grad_x)
-        grad_b = np.identity(ba.shape[2]) # unsure, probably need a identiy matrix?
-        self.gradients["W" + str(self.num_layers)] = gw
-        self.gradients["b" + str(self.num_layers)] = np.matmul(ba, grad_b)
-
-
+        # unsure, probably need a identiy matrix?
+        grad_b = np.identity(ba.shape[2])
+        self.gradients["W" + str(self.num_layers)] = np.mean(gw, axis=0)
+        self.gradients["b" + str(self.num_layers)
+                       ] = np.mean(np.matmul(ba, grad_b), axis=0)
 
         for layer in range(self.num_layers-1, 0, -1):
 
             activ = self.outputs[str(layer)]
             ll_W = self.params["W" + str(layer)]
             ll_b = self.params["b" + str(layer)]
-           
+
             activ_grad = self.relu_grad(activ)  # unsure
             grad_W = self.weight_grad(ll_W, self.outputs[str(layer-1)])
             grad_x = ll_W.T
@@ -225,12 +225,13 @@ class NeuralNetwork:
                 # print(g[i].shape, grad_W.shape)
                 gw[i] = np.tensordot(ba[i], grad_W[i], axes=1)
             gw = gw.squeeze(axis=1)
-            
+            # print(ba.shape, gw.shape)
             grad_upstream = np.matmul(ba, grad_x)
-            grad_b = np.identity(ba.shape[2]) # unsure, probably need a identiy matrix?
-            self.gradients["W" + str(layer)] = gw
-            self.gradients["b" + str(layer)] = np.matmul(ba, grad_b)
-
+            # unsure, probably need a identiy matrix?
+            grad_b = np.identity(ba.shape[2])
+            self.gradients["W" + str(layer)] = np.mean(gw, axis=0)
+            self.gradients["b" +
+                           str(layer)] = np.mean(np.matmul(ba, grad_b), axis=0)
 
         return np.sum(loss)
 
