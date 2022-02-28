@@ -168,29 +168,34 @@ class NeuralNetwork:
         loss = np.mean(loss) + reg * np.sum(
             np.array([np.sum(self.params["W" + str(i+1)] ** 2) for i in range(self.num_layers)]))
 
+        l_W = self.params["W" + str(self.num_layers)]
+        l_b = self.params["b" + str(self.num_layers)]
         activ = self.outputs[str(self.num_layers)]
         grad_CEL = np.zeros((y.shape[0], 1, activ.shape[1]))
         grad_CEL[range(y.shape[0]), 0, y] = -1 / \
             activ[range(y.shape[0]), y]
         activ_grad = self.softmax_grad(activ)  # unsure
-        grad_x = self.params["W" + str(self.num_layers)].T
+        grad_x = l_W.T
 
-        ba = np.matmul(grad_CEL, activ_grad)    
+        ba = np.matmul(grad_CEL, activ_grad)
 
         gw = np.expand_dims(self.outputs[str(self.num_layers-1)], -1)
         gw = np.matmul(gw, ba)
 
         grad_upstream = np.matmul(ba, grad_x)
         grad_b = np.identity(ba.shape[2])
-        self.gradients["W" + str(self.num_layers)] = np.mean(gw, axis=0)
+        self.gradients["W" + str(self.num_layers)
+                       ] = np.mean(gw, axis=0) + 2 * reg * l_W
         self.gradients["b" + str(self.num_layers)
-                       ] = np.mean(np.matmul(ba, grad_b), axis=0)
+                       ] = np.mean(np.matmul(ba, grad_b), axis=0) + 2 * reg * l_b
 
         for layer in range(self.num_layers-1, 0, -1):
 
+            l_W = self.params["W" + str(layer)]
+            l_b = self.params["b" + str(layer)]
             activ = self.outputs[str(layer)]
             activ_grad = self.relu_grad(activ)  # unsure
-            grad_x = self.params["W" + str(layer)].T
+            grad_x = l_W.T
 
             ba = np.matmul(grad_upstream, activ_grad)
 
@@ -199,9 +204,10 @@ class NeuralNetwork:
 
             grad_upstream = np.matmul(ba, grad_x)
             grad_b = np.identity(ba.shape[2])
-            self.gradients["W" + str(layer)] = np.mean(gw, axis=0)
+            self.gradients["W" + str(layer)] = np.mean(gw,
+                                                       axis=0) + 2 * reg * l_W
             self.gradients["b" +
-                           str(layer)] = np.mean(np.matmul(ba, grad_b), axis=0)
+                           str(layer)] = np.mean(np.matmul(ba, grad_b), axis=0) + 2 * reg * l_b
 
         return loss
 
@@ -237,8 +243,6 @@ class NeuralNetwork:
             pass
 
         elif opt == 'Adam':
-
-
 
             pass
         pass
