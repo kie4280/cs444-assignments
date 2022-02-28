@@ -65,14 +65,6 @@ class NeuralNetwork:
 
         return np.matmul(X, W) + b
 
-    def weight_grad(self, W: np.ndarray, X: np.ndarray) -> np.ndarray:
-        output = np.zeros((X.shape[0], W.shape[1], W.shape[0], W.shape[1]))
-        for i in range(X.shape[0]):
-            for j in range(W.shape[1]):
-                output[i, j, :, j] = X[i, :]
-
-        return output
-
     def relu(self, X: np.ndarray) -> np.ndarray:
         """Rectified Linear Unit (ReLU).
         Parameters:
@@ -176,33 +168,19 @@ class NeuralNetwork:
         loss = np.mean(loss) + reg * np.sum(
             np.array([np.sum(self.params["W" + str(i+1)] ** 2) for i in range(self.num_layers)]))
 
-
         activ = self.outputs[str(self.num_layers)]
-        ll_W = self.params["W" + str(self.num_layers)]
-        ll_b = self.params["b" + str(self.num_layers)]
-
         grad_CEL = np.zeros((y.shape[0], 1, activ.shape[1]))
         grad_CEL[range(y.shape[0]), 0, y] = -1 / \
             activ[range(y.shape[0]), y]
         activ_grad = self.softmax_grad(activ)  # unsure
-        grad_W = self.weight_grad(ll_W, self.outputs[str(self.num_layers-1)])
-        grad_x = ll_W.T
+        grad_x = self.params["W" + str(self.num_layers)].T
 
-        ba = np.matmul(grad_CEL, activ_grad)
-        # print(ll_W.shape, grad_CEL.shape, activ_grad.shape, grad_W.shape)
-        # print(g.shape)
-        # gw = np.zeros((y.shape[0], 1, grad_W.shape[2], grad_W.shape[3]))
-
-        # for i in range(y.shape[0]):
-        #     # print(g[i].shape, grad_W.shape)
-        #     gw[i] = np.tensordot(ba[i], grad_W[i], axes=1)
-        # gw = gw.squeeze(axis=1)
+        ba = np.matmul(grad_CEL, activ_grad)    
 
         gw = np.expand_dims(self.outputs[str(self.num_layers-1)], -1)
         gw = np.matmul(gw, ba)
 
         grad_upstream = np.matmul(ba, grad_x)
-        # unsure, probably need a identiy matrix?
         grad_b = np.identity(ba.shape[2])
         self.gradients["W" + str(self.num_layers)] = np.mean(gw, axis=0)
         self.gradients["b" + str(self.num_layers)
@@ -211,29 +189,15 @@ class NeuralNetwork:
         for layer in range(self.num_layers-1, 0, -1):
 
             activ = self.outputs[str(layer)]
-            ll_W = self.params["W" + str(layer)]
-            ll_b = self.params["b" + str(layer)]
-
             activ_grad = self.relu_grad(activ)  # unsure
-            # grad_W = self.weight_grad(ll_W, self.outputs[str(layer-1)])
-            grad_x = ll_W.T
+            grad_x = self.params["W" + str(layer)].T
 
             ba = np.matmul(grad_upstream, activ_grad)
-            # print(ll_W.shape, grad_CEL.shape, activ_grad.shape, grad_W.shape)
-            # print(g.shape)
-            # gw = np.zeros((y.shape[0], 1, grad_W.shape[2], grad_W.shape[3]))
-
-            # for i in range(y.shape[0]):
-            #     # print(g[i].shape, grad_W.shape)
-            #     gw[i] = np.tensordot(ba[i], grad_W[i], axes=1)
-            # gw = gw.squeeze(axis=1)
-            # print(ba.shape, gw.shape)
 
             gw = np.expand_dims(self.outputs[str(layer-1)], -1)
             gw = np.matmul(gw, ba)
 
             grad_upstream = np.matmul(ba, grad_x)
-            # unsure, probably need a identiy matrix?
             grad_b = np.identity(ba.shape[2])
             self.gradients["W" + str(layer)] = np.mean(gw, axis=0)
             self.gradients["b" +
@@ -273,5 +237,8 @@ class NeuralNetwork:
             pass
 
         elif opt == 'Adam':
+
+
+
             pass
         pass
