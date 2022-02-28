@@ -173,10 +173,9 @@ class NeuralNetwork:
         loss = -np.log(self.outputs[str(self.num_layers)]
                        [range(y.shape[0]), y])
         # regularization
-        loss = loss + reg * np.sum(
+        loss = np.mean(loss) + reg * np.sum(
             np.array([np.sum(self.params["W" + str(i+1)] ** 2) for i in range(self.num_layers)]))
 
-        loss = loss / y.shape[0]
 
         activ = self.outputs[str(self.num_layers)]
         ll_W = self.params["W" + str(self.num_layers)]
@@ -192,12 +191,15 @@ class NeuralNetwork:
         ba = np.matmul(grad_CEL, activ_grad)
         # print(ll_W.shape, grad_CEL.shape, activ_grad.shape, grad_W.shape)
         # print(g.shape)
-        gw = np.zeros((y.shape[0], 1, grad_W.shape[2], grad_W.shape[3]))
+        # gw = np.zeros((y.shape[0], 1, grad_W.shape[2], grad_W.shape[3]))
 
-        for i in range(y.shape[0]):
-            # print(g[i].shape, grad_W.shape)
-            gw[i] = np.tensordot(ba[i], grad_W[i], axes=1)
-        gw = gw.squeeze(axis=1)
+        # for i in range(y.shape[0]):
+        #     # print(g[i].shape, grad_W.shape)
+        #     gw[i] = np.tensordot(ba[i], grad_W[i], axes=1)
+        # gw = gw.squeeze(axis=1)
+
+        gw = np.expand_dims(self.outputs[str(self.num_layers-1)], -1)
+        gw = np.matmul(gw, ba)
 
         grad_upstream = np.matmul(ba, grad_x)
         # unsure, probably need a identiy matrix?
@@ -213,19 +215,23 @@ class NeuralNetwork:
             ll_b = self.params["b" + str(layer)]
 
             activ_grad = self.relu_grad(activ)  # unsure
-            grad_W = self.weight_grad(ll_W, self.outputs[str(layer-1)])
+            # grad_W = self.weight_grad(ll_W, self.outputs[str(layer-1)])
             grad_x = ll_W.T
 
             ba = np.matmul(grad_upstream, activ_grad)
             # print(ll_W.shape, grad_CEL.shape, activ_grad.shape, grad_W.shape)
             # print(g.shape)
-            gw = np.zeros((y.shape[0], 1, grad_W.shape[2], grad_W.shape[3]))
+            # gw = np.zeros((y.shape[0], 1, grad_W.shape[2], grad_W.shape[3]))
 
-            for i in range(y.shape[0]):
-                # print(g[i].shape, grad_W.shape)
-                gw[i] = np.tensordot(ba[i], grad_W[i], axes=1)
-            gw = gw.squeeze(axis=1)
+            # for i in range(y.shape[0]):
+            #     # print(g[i].shape, grad_W.shape)
+            #     gw[i] = np.tensordot(ba[i], grad_W[i], axes=1)
+            # gw = gw.squeeze(axis=1)
             # print(ba.shape, gw.shape)
+
+            gw = np.expand_dims(self.outputs[str(layer-1)], -1)
+            gw = np.matmul(gw, ba)
+
             grad_upstream = np.matmul(ba, grad_x)
             # unsure, probably need a identiy matrix?
             grad_b = np.identity(ba.shape[2])
@@ -233,7 +239,7 @@ class NeuralNetwork:
             self.gradients["b" +
                            str(layer)] = np.mean(np.matmul(ba, grad_b), axis=0)
 
-        return np.sum(loss)
+        return loss
 
     def update(
         self,
