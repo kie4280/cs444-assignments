@@ -1,0 +1,9 @@
+%cd /kaggle/working/
+!rm -r mp2
+!git clone https://github.com/kie4280/cs444-assignments.git mp2
+%cd /kaggle/working/mp2/assignment2
+!ls
+!chmod a+x fashion-mnist/get_data.sh
+%cd fashion-mnist
+!./get_data.sh
+%cd ../
