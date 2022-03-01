@@ -1,2 +1,3 @@
 fashion-mnist/*.gz
 **/__pycache__
+*.csv

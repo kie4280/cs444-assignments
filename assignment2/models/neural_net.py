@@ -41,16 +41,23 @@ class NeuralNetwork:
         self.hidden_sizes = hidden_sizes
         self.output_size = output_size
         self.num_layers = num_layers
+        self.t: int = 0
 
         assert len(hidden_sizes) == (num_layers - 1)
         sizes = [input_size] + hidden_sizes + [output_size]
 
         self.params = {}
+        self.moment1 = {}
+        self.moment2 = {}
         for i in range(1, num_layers + 1):
             self.params["W" + str(i)] = np.random.randn(
                 sizes[i - 1], sizes[i]
             ) / np.sqrt(sizes[i - 1])
             self.params["b" + str(i)] = np.zeros(sizes[i])
+            self.moment1["W" + str(i)] = np.zeros((sizes[i-1], sizes[i]))
+            self.moment2["W" + str(i)] = np.zeros((sizes[i-1], sizes[i]))
+            self.moment1["b" + str(i)] = np.zeros(sizes[i])
+            self.moment2["b" + str(i)] = np.zeros(sizes[i])
 
     def linear(self, W: np.ndarray, X: np.ndarray, b: np.ndarray) -> np.ndarray:
         """Fully connected (linear) layer.
@@ -173,7 +180,7 @@ class NeuralNetwork:
         activ = self.outputs[str(self.num_layers)]
         grad_CEL = np.zeros((y.shape[0], 1, activ.shape[1]))
         grad_CEL[range(y.shape[0]), 0, y] = -1 / \
-            activ[range(y.shape[0]), y]
+            (activ[range(y.shape[0]), y] + 1e-23)
         activ_grad = self.softmax_grad(activ)  # unsure
         grad_x = l_W.T
 
@@ -230,6 +237,7 @@ class NeuralNetwork:
         """
         # TODO: implement me. You'll want to add an if-statement that can
         # handle updates for both SGD and Adam depending on the value of opt.
+        self.t += 1
 
         if opt == 'SGD':
             for i in range(self.num_layers):
@@ -240,9 +248,25 @@ class NeuralNetwork:
                 self.params["b" + str(i+1)] = b - lr * \
                     self.gradients["b" + str(i+1)]
 
-            pass
-
         elif opt == 'Adam':
+            for i in range(self.num_layers):
+                W: np.ndarray = self.gradients["W" + str(i+1)]
+                b: np.ndarray = self.gradients["b" + str(i+1)]
 
-            pass
-        pass
+                m = b1 * self.moment1["W" + str(i+1)] + (1-b1) * W
+                v = b2 * self.moment2["W" + str(i+1)] + (1-b2) * (W**2)
+                cm = m / (1 - (b1**self.t))
+                cv = v / (1 - (b2**self.t))
+                self.moment1["W" + str(i+1)] = m
+                self.moment2["W" + str(i+1)] = v
+                self.params["W" + str(i+1)] = self.params["W" + str(i+1)] - \
+                    lr * (cm / (np.sqrt(cv) + eps))
+
+                m = b1 * self.moment1["b" + str(i+1)] + (1-b1) * b
+                v = b2 * self.moment2["b" + str(i+1)] + (1-b2) * (b**2)
+                cm = m / (1 - (b1**self.t))
+                cv = v / (1 - (b2**self.t))
+                self.moment1["b" + str(i+1)] = m
+                self.moment2["b" + str(i+1)] = v
+                self.params["b" + str(i+1)] = self.params["b" + str(i+1)] - \
+                    lr * (cm / (np.sqrt(cv) + eps))
