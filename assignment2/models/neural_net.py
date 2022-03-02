@@ -172,8 +172,11 @@ class NeuralNetwork:
         loss = -np.log(self.outputs[str(self.num_layers)]
                        [range(y.shape[0]), y])
         # regularization
-        loss = np.mean(loss) + reg * np.sum(
-            np.array([np.sum(self.params["W" + str(i+1)] ** 2) for i in range(self.num_layers)]))
+        loss = np.mean(loss) + \
+            reg * np.sum(np.array([np.sum(self.params["W" + str(i+1)] ** 2)
+                                   for i in range(self.num_layers)])) + \
+            reg * np.sum(np.array([np.sum(self.params["b" + str(i+1)] ** 2)
+                         for i in range(self.num_layers)]))
 
         l_W = self.params["W" + str(self.num_layers)]
         l_b = self.params["b" + str(self.num_layers)]
